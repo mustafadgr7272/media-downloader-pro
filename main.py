@@ -96,14 +96,16 @@ def main(page: ft.Page):
             daemon=True,
         ).start()
 
-    # Hem yeni Flet 1.0+ (ft.Button) hem eski sürümlerle (ft.ElevatedButton) uyumlu buton
+    # Flet 1.1.2+ uyumlu Button ve Padding tanımı
     ButtonClass = getattr(ft, "Button", None) or getattr(ft, "ElevatedButton")
+    PaddingClass = getattr(ft, "Padding", None) or getattr(ft, "padding")
+
     download_btn = ButtonClass(
         "İNDİR",
         icon=ft.Icons.DOWNLOAD,
         on_click=on_download_click,
         style=ft.ButtonStyle(
-            padding=ft.padding.symmetric(horizontal=30, vertical=15),
+            padding=PaddingClass.symmetric(horizontal=30, vertical=15),
         ),
     )
 
