@@ -59,12 +59,17 @@ def main(page: ft.Page):
                 "noplaylist": True,
                 "quiet": True,
                 "no_warnings": True,
+                "extractor_args": {
+                    "youtube": {
+                        "player_client": ["android", "web"]
+                    }
+                },
             }
 
             if fmt == "mp3":
                 ydl_opts["format"] = "bestaudio/best"
             else:
-                ydl_opts["format"] = "best[ext=mp4]/best"
+                ydl_opts["format"] = "best[acodec!=none][vcodec!=none]/best[ext=mp4]/best"
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
@@ -96,7 +101,6 @@ def main(page: ft.Page):
             daemon=True,
         ).start()
 
-    # Flet 1.1.2+ uyumlu Button ve Padding tanımı
     ButtonClass = getattr(ft, "Button", None) or getattr(ft, "ElevatedButton")
     PaddingClass = getattr(ft, "Padding", None) or getattr(ft, "padding")
 
