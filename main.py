@@ -67,16 +67,19 @@ def main(page: ft.Page):
         expand=True,
     )
 
+    dir_picker = ft.FilePicker()
+    if hasattr(page, "services"):
+        page.services.append(dir_picker)
+    else:
+        page.overlay.append(dir_picker)
+
     async def pick_folder_async(e):
         try:
-            # Flet 1.0+ yeni FilePicker yapısı
-            fp = ft.FilePicker()
-            if hasattr(fp, "get_directory_path"):
-                res = await fp.get_directory_path(dialog_title="İndirilecek Klasörü Seçin")
-                if res:
-                    selected_dir["path"] = res
-                    path_text.value = f"Kayıt Yeri: {res}"
-                    page.update()
+            res = await dir_picker.get_directory_path(dialog_title="İndirilecek Klasörü Seçin")
+            if res:
+                selected_dir["path"] = res
+                path_text.value = f"Kayıt Yeri: {res}"
+                page.update()
         except Exception as ex:
             status_text.value = f"Klasör seçici uyarısı: {ex}"
             page.update()
@@ -193,7 +196,7 @@ def main(page: ft.Page):
                     ),
                     padding=PaddingClass.symmetric(horizontal=12, vertical=6),
                     border_radius=10,
-                    bgcolor=ft.Colors.WHITE10,
+                    bgcolor=ft.Colors.WHITE_10,
                 ),
                 ft.Divider(height=6, color=ft.Colors.TRANSPARENT),
                 download_btn,
