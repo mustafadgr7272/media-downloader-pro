@@ -36,10 +36,6 @@ def main(page: ft.Page):
         expand=True,
     )
 
-    def on_format_change(e):
-        quality_dropdown.disabled = (format_dropdown.value == "mp3")
-        page.update()
-
     format_dropdown = ft.Dropdown(
         label="Format",
         value="mp4",
@@ -47,12 +43,11 @@ def main(page: ft.Page):
             ft.dropdown.Option("mp4", "Video (MP4)"),
             ft.dropdown.Option("mp3", "Ses (MP3)"),
         ],
-        on_change=on_format_change,
         expand=True,
     )
 
     quality_dropdown = ft.Dropdown(
-        label="Görüntü Kalitesi",
+        label="Kalite (MP4)",
         value="best",
         options=[
             ft.dropdown.Option("best", "En Yüksek"),
@@ -72,20 +67,24 @@ def main(page: ft.Page):
         expand=True,
     )
 
-    def on_dir_picked(e: ft.FilePickerResultEvent):
-        if e.path:
-            selected_dir["path"] = e.path
-            path_text.value = f"Kayıt Yeri: {e.path}"
+    async def pick_folder_async(e):
+        try:
+            # Flet 1.0+ yeni FilePicker yapısı
+            fp = ft.FilePicker()
+            if hasattr(fp, "get_directory_path"):
+                res = await fp.get_directory_path(dialog_title="İndirilecek Klasörü Seçin")
+                if res:
+                    selected_dir["path"] = res
+                    path_text.value = f"Kayıt Yeri: {res}"
+                    page.update()
+        except Exception as ex:
+            status_text.value = f"Klasör seçici uyarısı: {ex}"
             page.update()
 
-    dir_picker = ft.FilePicker(on_result=on_dir_picked)
-    page.overlay.append(dir_picker)
-
-    IconBtnClass = getattr(ft, "IconButton", None)
-    pick_folder_btn = IconBtnClass(
+    pick_folder_btn = ft.IconButton(
         icon=ft.Icons.FOLDER_OPEN,
         tooltip="Kayıt Klasörü Seç",
-        on_click=lambda _: dir_picker.get_directory_path(dialog_title="İndirilecek Klasörü Seçin"),
+        on_click=pick_folder_async,
     )
 
     status_text = ft.Text("Hazır", size=14, color=ft.Colors.GREY_400, text_align=ft.TextAlign.CENTER)
