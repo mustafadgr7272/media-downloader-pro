@@ -1,0 +1,33 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flet yt-dlp
+
+      - name: Build iOS IPA (Unsigned)
+        run: |
+          flet build ipa --product "Media Downloader Pro" --project "media_downloader_pro" --no-codesign --yes --verbose
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaDownloaderPro-iOS-IPA
+          path: build/ipa/*.ipa
