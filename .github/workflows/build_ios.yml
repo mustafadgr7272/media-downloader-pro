@@ -43,8 +43,8 @@ jobs:
             cp -r "$APP_PATH" Payload/
             zip -r "$GITHUB_WORKSPACE/output_ios/media_downloader_pro.ipa" Payload
 
-            # 2. Appetize.io için Simulator ZIP
-            "$FLUTTER_BIN" build ios --simulator --release
+            # 2. Appetize.io için Simulator ZIP (--debug modu)
+            "$FLUTTER_BIN" build ios --simulator --debug
             SIM_APP=$(find build/ios/iphonesimulator -name "*.app" | head -n 1)
             SIM_DIR=$(dirname "$SIM_APP")
             SIM_NAME=$(basename "$SIM_APP")
