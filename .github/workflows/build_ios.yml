@@ -22,12 +22,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet yt-dlp
 
-      - name: Build iOS App / IPA (Unsigned)
+      - name: Build iOS IPA & Appetize Simulator
         run: |
-          # Flet CLI'ın kendi Flutter SDK'sını kurmasını ve geçici Flutter projesini hazırlamasını sağla
           flet build ipa --product "Media Downloader Pro" --project "media_downloader_pro" --yes --verbose || true
 
-          # Flet'in hazırladığı Flutter SDK ve proje klasörünü bul
           FLUTTER_BIN=$(find ~ -name "flutter" -type f -path "*/bin/flutter" 2>/dev/null | head -n 1)
           PROJ_DIR=$(find . -maxdepth 3 -name "pubspec.yaml" -exec dirname {} \; | head -n 1)
 
@@ -35,27 +33,29 @@ jobs:
             PROJ_DIR=$(find /tmp -maxdepth 3 -name "pubspec.yaml" -exec dirname {} \; 2>/dev/null | head -n 1)
           fi
 
-          echo "Flutter: $FLUTTER_BIN"
-          echo "Proje Dizini: $PROJ_DIR"
-
-          # Eğer doğrudan .ipa oluşmadıysa projeyi imzasız derleyip Payload -> .ipa yap
-          mkdir -p output_ipa
-          if ls build/ipa/*.ipa 1> /dev/null 2>&1; then
-            cp build/ipa/*.ipa output_ipa/
-          elif [ -n "$FLUTTER_BIN" ] && [ -n "$PROJ_DIR" ]; then
+          mkdir -p output_ios
+          if [ -n "$FLUTTER_BIN" ] && [ -n "$PROJ_DIR" ]; then
             cd "$PROJ_DIR"
+            # 1. Gerçek iPhone için IPA
             "$FLUTTER_BIN" build ios --release --no-codesign
             APP_PATH=$(find build/ios/iphoneos -name "*.app" | head -n 1)
             mkdir -p Payload
             cp -r "$APP_PATH" Payload/
-            zip -r "$GITHUB_WORKSPACE/output_ipa/media_downloader_pro.ipa" Payload
+            zip -r "$GITHUB_WORKSPACE/output_ios/media_downloader_pro.ipa" Payload
+
+            # 2. Appetize.io için Simulator ZIP
+            "$FLUTTER_BIN" build ios --simulator --release
+            SIM_APP=$(find build/ios/iphonesimulator -name "*.app" | head -n 1)
+            SIM_DIR=$(dirname "$SIM_APP")
+            SIM_NAME=$(basename "$SIM_APP")
+            cd "$SIM_DIR"
+            zip -r "$GITHUB_WORKSPACE/output_ios/Appetize_Simulator.zip" "$SIM_NAME"
           else
-            echo "Flutter projesi veya SDK bulunamadı!"
             exit 1
           fi
 
-      - name: Upload IPA
+      - name: Upload iOS Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MediaDownloaderPro-iOS-IPA
-          path: output_ipa/*.ipa
+          name: MediaDownloaderPro-iOS-Builds
+          path: output_ios/*
