@@ -22,12 +22,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet yt-dlp
 
-      - name: Build iOS IPA (Unsigned)
+      - name: Build iOS App / IPA
         run: |
-          flet build ipa --product "Media Downloader Pro" --project "media_downloader_pro" --no-codesign --yes --verbose
+          flet build ipa --product "Media Downloader Pro" --project "media_downloader_pro" --build-args="--no-codesign" --yes --verbose || true
+          mkdir -p output_ipa
+          if ls build/ipa/*.ipa 1> /dev/null 2>&1; then
+            cp build/ipa/*.ipa output_ipa/
+          else
+            APP_PATH=$(find build -name "*.app" -path "*/iphoneos/*" | head -n 1)
+            if [ -n "$APP_PATH" ]; then
+              mkdir -p Payload
+              cp -r "$APP_PATH" Payload/
+              zip -r output_ipa/media_downloader_pro.ipa Payload
+            else
+              echo "iOS build çıktısı bulunamadı!"
+              exit 1
+            fi
+          fi
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: MediaDownloaderPro-iOS-IPA
-          path: build/ipa/*.ipa
+          path: output_ipa/*.ipa
