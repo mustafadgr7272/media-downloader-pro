@@ -20,9 +20,16 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     def get_default_path():
+        # 1. Android standart Download klasörü
         android_dl = "/storage/emulated/0/Download"
         if os.path.exists(android_dl) and os.access(android_dl, os.W_OK):
             return android_dl
+        # 2. iOS (iPhone/iPad) Dosyalar uygulamasında görünen Documents klasörü
+        ios_docs = os.path.expanduser("~/Documents")
+        if getattr(page, "platform", None) == ft.PagePlatform.IOS:
+            os.makedirs(ios_docs, exist_ok=True)
+            return ios_docs
+        # 3. Windows / Masaüstü standart Downloads klasörü
         fallback = os.path.join(os.path.expanduser("~"), "Downloads")
         os.makedirs(fallback, exist_ok=True)
         return fallback
